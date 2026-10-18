@@ -1,0 +1,562 @@
+{
+  "info": {
+    "name": "101571952 COMP3123 Assignment 1",
+    "description": "Employee management API tests. Set baseUrl (e.g. http://localhost:8081). Login saves token automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "token2",
+      "value": ""
+    },
+    {
+      "key": "eid",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Signup - valid",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/user/signup",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"tester_a\",\"email\":\"tester_a@example.com\",\"password\":\"Passw0rd1\"}"
+        }
+      }
+    },
+    {
+      "name": "Signup - duplicate (expect 409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/user/signup",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"tester_a\",\"email\":\"tester_a@example.com\",\"password\":\"Passw0rd1\"}"
+        }
+      }
+    },
+    {
+      "name": "Signup - invalid email and weak password (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/user/signup",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"x\",\"email\":\"not-an-email\",\"password\":\"short\"}"
+        }
+      }
+    },
+    {
+      "name": "Login - valid (saves token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const j = pm.response.json(); if (j.token) pm.collectionVariables.set('token', j.token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/user/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"tester_a\",\"password\":\"Passw0rd1\"}"
+        }
+      }
+    },
+    {
+      "name": "Login - wrong password (expect 401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/user/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"tester_a\",\"password\":\"WrongPass1\"}"
+        }
+      }
+    },
+    {
+      "name": "Create employee - valid (saves eid)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const j = pm.response.json(); if (j.employee) pm.collectionVariables.set('eid', j.employee._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/emp/employees",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\":\"Ana\",\"last_name\":\"Silva\",\"email\":\"ana.silva@example.com\",\"position\":\"Developer\",\"salary\":65000,\"date_of_joining\":\"2026-01-15\",\"department\":\"Engineering\"}"
+        }
+      }
+    },
+    {
+      "name": "Create employee - invalid salary and missing fields (expect 400)",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/emp/employees",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\":\"Ana\",\"salary\":-5}"
+        }
+      }
+    },
+    {
+      "name": "Create employee - no token (expect 401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/emp/employees",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "List employees",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/v1/emp/employees"
+      }
+    },
+    {
+      "name": "Get employee by id",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/v1/emp/employees/{{eid}}"
+      }
+    },
+    {
+      "name": "Get employee - invalid id (expect 400)",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/v1/emp/employees/123"
+      }
+    },
+    {
+      "name": "Update employee",
+      "request": {
+        "method": "PUT",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/v1/emp/employees/{{eid}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"position\":\"Senior Developer\",\"salary\":80000}"
+        }
+      }
+    },
+    {
+      "name": "Delete employee",
+      "request": {
+        "method": "DELETE",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/emp/employees?eid={{eid}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "emp",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "eid",
+              "value": "{{eid}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "OWN 1 - tester_a creates employee (saves eidA)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/emp/employees",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\":\"Ben\",\"last_name\":\"Owner\",\"email\":\"ben.owner@example.com\",\"position\":\"Analyst\",\"salary\":70000,\"date_of_joining\":\"2026-02-01\",\"department\":\"Finance\"}"
+        }
+      },
+      "description": "Expect 201. Owner = tester_a.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const j = pm.response.json(); if (j.employee) pm.collectionVariables.set('eidA', j.employee._id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OWN 2 - signup tester_b",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/user/signup",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"tester_b\",\"email\":\"tester_b@example.com\",\"password\":\"Passw0rd2\"}"
+        }
+      },
+      "description": "Expect 201 on first run, 409 if already created. Both are fine."
+    },
+    {
+      "name": "OWN 3 - login tester_b (saves token2)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/user/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\":\"tester_b\",\"password\":\"Passw0rd2\"}"
+        }
+      },
+      "description": "Expect 200.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const j = pm.response.json(); if (j.token) pm.collectionVariables.set('token2', j.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OWN 4 - tester_b creates own employee (saves eidB)",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/v1/emp/employees",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token2}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\":\"Ben\",\"last_name\":\"Owner\",\"email\":\"ben.owner@example.com\",\"position\":\"Analyst\",\"salary\":70000,\"date_of_joining\":\"2026-02-01\",\"department\":\"Finance\"}"
+        }
+      },
+      "description": "Expect 201. Owner = tester_b.",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const j = pm.response.json(); if (j.employee) pm.collectionVariables.set('eidB', j.employee._id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "OWN 5 - tester_b GET tester_a employee (expect 404)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/emp/employees/{{eidA}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token2}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "description": "Expect 404 Employee not found."
+    },
+    {
+      "name": "OWN 6 - tester_b PUT tester_a employee (expect 404)",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v1/emp/employees/{{eidA}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token2}}",
+              "type": "string"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"position\":\"Hacked\"}"
+        }
+      },
+      "description": "Expect 404. Record must not change."
+    },
+    {
+      "name": "OWN 7 - tester_b DELETE tester_a employee (expect 404)",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/emp/employees?eid={{eidA}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token2}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "description": "Expect 404. Record must not be deleted."
+    },
+    {
+      "name": "OWN 8 - tester_b list only shows own employees",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/emp/employees",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token2}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "description": "Expect 200. tester_a's employee must NOT appear in this list."
+    },
+    {
+      "name": "OWN 9 - tester_a GET tester_b employee (expect 404)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/emp/employees/{{eidB}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "description": "Expect 404. Reverse direction."
+    },
+    {
+      "name": "OWN 10 - tester_a still has own employee (expect 200)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/emp/employees/{{eidA}}",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "description": "Expect 200 and position unchanged (not Hacked)."
+    }
+  ]
+}
